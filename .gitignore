@@ -1,5 +1,8 @@
+*.bak
+*.old
+/*.yaml
+/*.yml
+*.json
+/golp*
 /htdocs
 /node_modules
-/test-test
-/golp*
-/Makefile

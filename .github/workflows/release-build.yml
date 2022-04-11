@@ -4,13 +4,12 @@ on:
       - '*'
 name: Build & release
 jobs:
-  ubuntu-test:
+  linux-builds:
     strategy:
       matrix:
         go-version: [1.18.x]
         os: [ubuntu-latest]
         goarch: ["386", amd64, arm64]
-        # goarch: [amd64]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/setup-go@v3
@@ -20,16 +19,16 @@ jobs:
     - run: go build -ldflags "-s -w" .
       env:
         CGO_ENABLED: 1
-    - run: tar -zcvf test-test_linux_${{ matrix.goarch }}.tar.gz test-test main.go
+    - run: tar -zcvf golp_linux_${{ matrix.goarch }}.tar.gz golp README.md LICENSE
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: test-test_linux_${{ matrix.goarch }}.tar.gz
-        asset_name: test-test_linux_${{ matrix.goarch }}.tar.gz
+        file: golp_linux_${{ matrix.goarch }}.tar.gz
+        asset_name: golp_linux_${{ matrix.goarch }}.tar.gz
         tag: ${{ github.ref }}
 
-  darwin-test:
+  darwin-builds:
     strategy:
       matrix:
         go-version: [1.18.x]
@@ -44,16 +43,16 @@ jobs:
     - run: go build -ldflags "-s -w" .
       env:
         CGO_ENABLED: 1
-    - run: tar -zcvf test-test_darwin_${{ matrix.goarch }}.tar.gz test-test main.go
+    - run: tar -zcvf golp_darwin_${{ matrix.goarch }}.tar.gz golp README.md LICENSE
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: test-test_darwin_${{ matrix.goarch }}.tar.gz
-        asset_name: test-test_darwin_${{ matrix.goarch }}.tar.gz
+        file: golp_darwin_${{ matrix.goarch }}.tar.gz
+        asset_name: golp_darwin_${{ matrix.goarch }}.tar.gz
         tag: ${{ github.ref }}
 
-  windows-test:
+  windows-builds:
     strategy:
       matrix:
         go-version: [1.18.x]
@@ -72,12 +71,12 @@ jobs:
     - name: Compress zip files
       uses: papeloto/action-zip@v1
       with:
-        files: test-test.exe main.go
-        dest: test-test_windows_${{ matrix.goarch }}.zip
+        files: golp.exe README.md LICENSE
+        dest: golp_windows_${{ matrix.goarch }}.zip
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: test-test_windows_${{ matrix.goarch }}.zip
-        asset_name: test-test_windows_${{ matrix.goarch }}.zip
+        file: golp_windows_${{ matrix.goarch }}.zip
+        asset_name: golp_windows_${{ matrix.goarch }}.zip
         tag: ${{ github.ref }}
