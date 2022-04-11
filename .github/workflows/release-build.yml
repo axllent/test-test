@@ -16,7 +16,7 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ env.APP_VERSION }}"'
+    - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ github.ref }}"'
       env:
         CGO_ENABLED: 1
     - run: tar -zcvf golp_linux_${{ matrix.goarch }}.tar.gz golp README.md LICENSE
@@ -40,7 +40,7 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ env.APP_VERSION }}"'
+    - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ github.ref }}"'
       env:
         CGO_ENABLED: 1
     - run: tar -zcvf golp_linux_${{ matrix.goarch }}-alpine.tar.gz golp README.md LICENSE
@@ -88,7 +88,7 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - run: go build -ldflags '-s -w -extldflags -static -X "github.com/axllent/golp/cmd.Version=${{ env.APP_VERSION }}"'
+    - run: go build -ldflags '-s -w -extldflags -static -X "github.com/axllent/golp/cmd.Version=${{ github.ref }}"'
       env:
         CGO_ENABLED: 1
     - run: go build -ldflags "-s -w" .
