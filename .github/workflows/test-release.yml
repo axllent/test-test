@@ -29,19 +29,29 @@ jobs:
         asset_name: test-test_linux_${{ matrix.goarch }}.tar.gz
         tag: ${{ github.ref }}
 
-  # darwin-test:
-  #   strategy:
-  #     matrix:
-  #       go-version: [1.18.x]
-  #       os: [macos-latest]
-  #       goarch: [amd64, arm64]
-  #   runs-on: ${{ matrix.os }}
-  #   steps:
-  #   - uses: actions/setup-go@v3
-  #     with:
-  #       go-version: ${{ matrix.go-version }}
-  #   - uses: actions/checkout@v3
-  #   - run: CGO_ENABLED=1 go build -ldflags "-s -w" .
+  darwin-test:
+    strategy:
+      matrix:
+        go-version: [1.18.x]
+        os: [macos-latest]
+        goarch: [amd64, arm64]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/setup-go@v3
+      with:
+        go-version: ${{ matrix.go-version }}
+    - uses: actions/checkout@v3
+    - run: go build -ldflags "-s -w" .
+      env:
+        CGO_ENABLED: 1
+    - run: tar -zcvf test-test_darwin_${{ matrix.goarch }}.tar.gz test-test main.go
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: test-test_darwin_${{ matrix.goarch }}.tar.gz
+        asset_name: test-test_darwin_${{ matrix.goarch }}.tar.gz
+        tag: ${{ github.ref }}
 
   # windows-test:
   #   strategy:
