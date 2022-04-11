@@ -78,6 +78,6 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: test-test_windows${{ matrix.goarch }}.zip
-        asset_name: test-test_windows${{ matrix.goarch }}.zip
+        file: test-test_windows_${{ matrix.goarch }}.zip
+        asset_name: test-test_windows_${{ matrix.goarch }}.zip
         tag: ${{ github.ref }}
