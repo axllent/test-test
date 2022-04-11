@@ -1,19 +1,30 @@
 on: [push, pull_request]
 name: Test
 jobs:
-  test:
+  ubuntu-test:
     strategy:
       matrix:
         go-version: [1.18.x]
         # os: [ubuntu-latest, macos-latest, windows-latest]
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/setup-go@v3
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - if: CGO_ENABLED=0 matrix.os == 'ubuntu-latest'
-      run: go build -ldflags "-s -w" .
-    - if: matrix.os == 'macos-latest'
-      run: CGO_ENABLED=1 go build -ldflags "-s -w" .
+    - run: go build -ldflags "-s -w" .
+
+  darwin-test:
+    strategy:
+      matrix:
+        go-version: [1.18.x]
+        # os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/setup-go@v3
+      with:
+        go-version: ${{ matrix.go-version }}
+    - uses: actions/checkout@v3
+    - run: CGO_ENABLED=1 go build -ldflags "-s -w" .
