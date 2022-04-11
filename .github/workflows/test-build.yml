@@ -14,8 +14,10 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - run: CGO_ENABLED=1 go build -ldflags "-s -w" .
-    - run: tar xcvf test-test_linux_${{ matrix.goarch }}.tar.gz test-test main.go
+    - run: go build -ldflags "-s -w" .
+      env:
+        CGO_ENABLED: 1
+    - run: tar -xcvf test-test_linux_${{ matrix.goarch }}.tar.gz test-test main.go
 
   # darwin-test:
   #   strategy:

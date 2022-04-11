@@ -1,50 +1,67 @@
-on: [push, pull_request]
-name: Test
+name: Release Go Binaries
+
+on: 
+  release:
+    types: [created]
+
 jobs:
-  ubuntu-test:
+  releases-matrix:
+    name: Release Go Binary
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: [1.18.x]
-        os: [ubuntu-latest]
+        goos: [linux, darwin]
         goarch: ["386", amd64, arm64]
-    runs-on: ${{ matrix.os }}
+        exclude:
+          - goarch: "386"
+            goos: darwin
     steps:
-    - uses: actions/setup-go@v3
-      with:
-        go-version: ${{ matrix.go-version }}
-    - uses: actions/checkout@v3
-    - run: go build -ldflags "-s -w" .
-      env:
-        CGO_ENABLED: 1
+    - uses: actions/checkout@v2
 
-  darwin-test:
+    - name: Set APP_VERSION env
+      run: echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
+
+    - name: Environment Printer
+      uses: managedkaos/print-env@v1.0
+
+    - uses: wangyoucao577/go-release-action@v1.24
+      with:
+        binary_name: "golp"
+        asset_name: "golp_${{ matrix.goos }}_${{ matrix.goarch }}"
+        # extra_files: LICENSE README.md
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        md5sum: false
+        overwrite: true
+        goos: ${{ matrix.goos }}
+        goarch: ${{ matrix.goarch }}
+        # pre_command: export CGO_ENABLED=1
+        ldflags: -s -w -X "github.com/axllent/golp/cmd.Version=${{ env.APP_VERSION }}"
+
+  releases-win-matrix:
+    name: Release Windows Go Binary
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: [1.18.x]
-        os: [macos-latest]
-        goarch: [amd64, arm64]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/setup-go@v3
-      with:
-        go-version: ${{ matrix.go-version }}
-    - uses: actions/checkout@v3
-    - run: go build -ldflags "-s -w" .
-      env:
-        CGO_ENABLED: 1
-
-  windows-test:
-    strategy:
-      matrix:
-        go-version: [1.18.x]
-        os: [windows-latest]
+        goos: [windows]
         goarch: ["386", amd64]
-    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/setup-go@v3
+    - uses: actions/checkout@v2
+
+    - name: Set APP_VERSION env
+      run: echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
+
+    - name: Environment Printer
+      uses: managedkaos/print-env@v1.0
+
+    - uses: wangyoucao577/go-release-action@v1.24
       with:
-        go-version: ${{ matrix.go-version }}
-    - uses: actions/checkout@v3
-    - run: go build -ldflags "-s -w -extldflags '-static'" .
-      env:
-        CGO_ENABLED: 1
+        binary_name: "golp"
+        asset_name: "golp_${{ matrix.goos }}_${{ matrix.goarch }}"
+        # extra_files: LICENSE README.md
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        md5sum: false
+        overwrite: true
+        goos: ${{ matrix.goos }}
+        goarch: ${{ matrix.goarch }}
+        pre_command: set CGO_ENABLED=1
+        ldflags: -s -w -extldflags -static -X "github.com/axllent/golp/cmd.Version=${{ env.APP_VERSION }}"
