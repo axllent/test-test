@@ -15,8 +15,11 @@ jobs:
     - uses: actions/setup-go@v3
       with:
         go-version: ${{ matrix.go-version }}
+    - name: Get tag
+      id: tag
+      uses: dawidd6/action-get-tag@v1
     - uses: actions/checkout@v3
-    - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ github.ref }}"'
+    - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ steps.tag.outputs.tag }}"'
       env:
         CGO_ENABLED: 1
     - run: tar -zcvf golp_linux_${{ matrix.goarch }}.tar.gz golp README.md LICENSE
@@ -39,8 +42,11 @@ jobs:
     - uses: actions/setup-go@v3
       with:
         go-version: ${{ matrix.go-version }}
+    - name: Get tag
+      id: tag
+      uses: dawidd6/action-get-tag@v1
     - uses: actions/checkout@v3
-    - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ github.ref }}"'
+    - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ steps.tag.outputs.tag }}"'
       env:
         CGO_ENABLED: 1
     - run: tar -zcvf golp_darwin_${{ matrix.goarch }}.tar.gz golp README.md LICENSE
@@ -64,7 +70,10 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - run: go build -ldflags '-s -w -extldflags -static -X "github.com/axllent/golp/cmd.Version=${{ github.ref }}"'
+    - name: Get tag
+      id: tag
+      uses: dawidd6/action-get-tag@v1
+    - run: go build -ldflags '-s -w -extldflags -static -X "github.com/axllent/golp/cmd.Version=${{ steps.tag.outputs.tag }}"'
       env:
         CGO_ENABLED: 1
     - run: go build -ldflags "-s -w" .
