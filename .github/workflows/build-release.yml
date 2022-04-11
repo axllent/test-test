@@ -39,7 +39,7 @@ jobs:
 
   releases-win-matrix:
     name: Release Windows Go Binary
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         goos: [windows]
