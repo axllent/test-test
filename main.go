@@ -3,23 +3,37 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
+	"os"
+	"path"
+	"path/filepath"
 
 	"github.com/bep/golibsass/libsass"
 )
 
 func main() {
+	args := os.Args
+
+	if len(args) != 2 {
+		fmt.Printf("Usage: %s <file.scss>\n", args[0])
+		os.Exit(1)
+	}
+
+	file := args[1]
+
+	base, err := filepath.Abs(path.Dir(file))
+	if err != nil {
+		panic(err)
+	}
 
 	transpiler, _ := libsass.New(libsass.Options{
 		OutputStyle:      libsass.ExpandedStyle,
-		IncludePaths:     []string{"htdocs/themes/site/src/sass/"},
+		IncludePaths:     []string{base},
 		SourceMapOptions: libsass.SourceMapOptions{EnableEmbedded: true},
 	})
 
-	content, err := ioutil.ReadFile("htdocs/themes/site/src/sass/email.scss")
-	// content, err := ioutil.ReadFile("htdocs/themes/site/src/sass/test.css")
+	content, err := ioutil.ReadFile(file)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	result, err := transpiler.Execute(string(content))
