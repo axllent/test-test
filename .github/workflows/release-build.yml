@@ -16,8 +16,6 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - name: Set APP_VERSION env
-      run: echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
     - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ env.APP_VERSION }}"'
       env:
         CGO_ENABLED: 1
@@ -42,8 +40,6 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - name: Set APP_VERSION env
-      run: echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
     - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ env.APP_VERSION }}"'
       env:
         CGO_ENABLED: 1
@@ -68,9 +64,7 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - name: Set APP_VERSION env
-      run: echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
-    - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ env.APP_VERSION }}"'
+    - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ github.ref }}"'
       env:
         CGO_ENABLED: 1
     - run: tar -zcvf golp_darwin_${{ matrix.goarch }}.tar.gz golp README.md LICENSE
@@ -94,8 +88,6 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - name: Set APP_VERSION env
-      run: echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
     - run: go build -ldflags '-s -w -extldflags -static -X "github.com/axllent/golp/cmd.Version=${{ env.APP_VERSION }}"'
       env:
         CGO_ENABLED: 1
