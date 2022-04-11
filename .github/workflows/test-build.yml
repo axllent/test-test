@@ -6,7 +6,8 @@ jobs:
       matrix:
         go-version: [1.18.x]
         os: [ubuntu-latest]
-        goarch: ["386", amd64, arm64]
+        # goarch: ["386", amd64, arm64]
+        goarch: [amd64]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/setup-go@v3
@@ -14,33 +15,34 @@ jobs:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
     - run: CGO_ENABLED=1 go build -ldflags "-s -w" .
+    - run: tar xcvf test-test_linux_${{ matrix.goarch }}.tar.gz test-test main.go
 
-  darwin-test:
-    strategy:
-      matrix:
-        go-version: [1.18.x]
-        os: [macos-latest]
-        goarch: [amd64, arm64]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/setup-go@v3
-      with:
-        go-version: ${{ matrix.go-version }}
-    - uses: actions/checkout@v3
-    - run: CGO_ENABLED=1 go build -ldflags "-s -w" .
+  # darwin-test:
+  #   strategy:
+  #     matrix:
+  #       go-version: [1.18.x]
+  #       os: [macos-latest]
+  #       goarch: [amd64, arm64]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #   - uses: actions/setup-go@v3
+  #     with:
+  #       go-version: ${{ matrix.go-version }}
+  #   - uses: actions/checkout@v3
+  #   - run: CGO_ENABLED=1 go build -ldflags "-s -w" .
 
-  windows-test:
-    strategy:
-      matrix:
-        go-version: [1.18.x]
-        os: [windows-latest]
-        goarch: ["386", amd64]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/setup-go@v3
-      with:
-        go-version: ${{ matrix.go-version }}
-    - uses: actions/checkout@v3
-    - run: go build -ldflags "-s -w -extldflags '-static'" .
-      env:
-        CGO_ENABLED: 1
+  # windows-test:
+  #   strategy:
+  #     matrix:
+  #       go-version: [1.18.x]
+  #       os: [windows-latest]
+  #       goarch: ["386", amd64]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #   - uses: actions/setup-go@v3
+  #     with:
+  #       go-version: ${{ matrix.go-version }}
+  #   - uses: actions/checkout@v3
+  #   - run: go build -ldflags "-s -w -extldflags '-static'" .
+  #     env:
+  #       CGO_ENABLED: 1
