@@ -1,33 +1,33 @@
 on: [push, pull_request]
 name: Test
 jobs:
-  ubuntu-test:
-    strategy:
-      matrix:
-        go-version: [1.18.x]
-        os: [ubuntu-latest]
-        goarch: ["386", amd64, arm64]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/setup-go@v3
-      with:
-        go-version: ${{ matrix.go-version }}
-    - uses: actions/checkout@v3
-    - run: CGO_ENABLED=1 go build -ldflags "-s -w" .
+  # ubuntu-test:
+  #   strategy:
+  #     matrix:
+  #       go-version: [1.18.x]
+  #       os: [ubuntu-latest]
+  #       goarch: ["386", amd64, arm64]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #   - uses: actions/setup-go@v3
+  #     with:
+  #       go-version: ${{ matrix.go-version }}
+  #   - uses: actions/checkout@v3
+  #   - run: CGO_ENABLED=1 go build -ldflags "-s -w" .
 
-  darwin-test:
-    strategy:
-      matrix:
-        go-version: [1.18.x]
-        os: [macos-latest]
-        goarch: [amd64, arm64]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/setup-go@v3
-      with:
-        go-version: ${{ matrix.go-version }}
-    - uses: actions/checkout@v3
-    - run: CGO_ENABLED=1 go build -ldflags "-s -w" .
+  # darwin-test:
+  #   strategy:
+  #     matrix:
+  #       go-version: [1.18.x]
+  #       os: [macos-latest]
+  #       goarch: [amd64, arm64]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #   - uses: actions/setup-go@v3
+  #     with:
+  #       go-version: ${{ matrix.go-version }}
+  #   - uses: actions/checkout@v3
+  #   - run: CGO_ENABLED=1 go build -ldflags "-s -w" .
 
   windows-test:
     strategy:
@@ -36,9 +36,11 @@ jobs:
         os: [windows-latest]
         goarch: ["386", amd64]
     runs-on: ${{ matrix.os }}
+    env:
+      - CGO_ENABLED=1
     steps:
     - uses: actions/setup-go@v3
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - run: CGO_ENABLED=1 go build -ldflags "-s -w -extldflags '-static'" .
+    - run: go build -ldflags "-s -w -extldflags '-static'" .
