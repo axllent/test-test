@@ -6,11 +6,14 @@ jobs:
       matrix:
         go-version: [1.18.x]
         # os: [ubuntu-latest, macos-latest, windows-latest]
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/setup-go@v3
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - run: go build -ldflags "-s -w" .
+    - if: CGO_ENABLED=0 matrix.os == 'ubuntu-latest'
+      run: go build -ldflags "-s -w" .
+    - if: matrix.os == 'macos-latest'
+      run: CGO_ENABLED=1 go build -ldflags "-s -w" .
