@@ -13,7 +13,7 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - run: CGO_ENABLED=1 go build -ldflags "-s -w -extldflags -static" .
+    - run: CGO_ENABLED=1 go build -ldflags "-s -w" .
 
   darwin-test:
     strategy:
@@ -27,7 +27,7 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - run: CGO_ENABLED=1 go build -ldflags "-s -w -extldflags -static" .
+    - run: CGO_ENABLED=1 go build -ldflags "-s -w" .
 
   windows-test:
     strategy:
