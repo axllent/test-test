@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.1.0
-      - run: ::set-output name=srcdir::$(pwd)
+      - run: echo "::set-output name=srcdir::$(pwd)"
         id: pwd
       - uses: docker/setup-qemu-action@v1
       - run: |
