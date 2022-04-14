@@ -7,12 +7,13 @@ name: Build & release
 
 jobs:
 
-  alpine-builds:
+  # building these in alpine seems to be far more reliable
+  linux-builds:
     strategy:
       matrix:
-        # arch: [amd64, arm64]
-        arch: [amd64]
-    name: alpine builds
+        arch: [amd64, arm64]
+        # arch: [amd64]
+    name: linux builds
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.1.0
@@ -27,13 +28,13 @@ jobs:
           go build -buildvcs=false -ldflags '-s -w -extldflags -static'"
       - name: Create archive
         run: |
-          tar -zcvf golp_alpine_${{ matrix.arch }}.tar.gz golp README.md LICENSE
+          tar -zcvf golp_linux_${{ matrix.arch }}.tar.gz golp README.md LICENSE
       - name: Upload archive to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: golp_alpine_${{ matrix.arch }}.tar.gz
-          asset_name: golp_alpine_${{ matrix.arch }}.tar.gz
+          file: golp_linux_${{ matrix.arch }}.tar.gz
+          asset_name: golp_linux_${{ matrix.arch }}.tar.gz
           overwrite: true
           tag: ${{ github.ref }}
 
@@ -58,7 +59,7 @@ jobs:
   #         run: |
   #           apk addgo  git gcc g++
   #           go build -ldflags "-s -w" .
-  #           tar -zcvf golp_alpine_armv7.tar.gz golp README.md LICENSE
+  #           tar -zcvf golp_linux_armv7.tar.gz golp README.md LICENSE
   #           ls -lh
 
       # - name: Get the output
@@ -82,13 +83,13 @@ jobs:
   #   - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ steps.tag.outputs.tag }}"'
   #     env:
   #       CGO_ENABLED: 1
-  #   - run: tar -zcvf golp_alpine_${{ matrix.goarch }}.tar.gz golp README.md LICENSE
+  #   - run: tar -zcvf golp_linux_${{ matrix.goarch }}.tar.gz golp README.md LICENSE
   #   - name: Upload binaries to release
   #     uses: svenstaro/upload-release-action@v2
   #     with:
   #       repo_token: ${{ secrets.GITHUB_TOKEN }}
-  #       file: golp_alpine_${{ matrix.goarch }}.tar.gz
-  #       asset_name: golp_alpine_${{ matrix.goarch }}.tar.gz
+  #       file: golp_linux_${{ matrix.goarch }}.tar.gz
+  #       asset_name: golp_linux_${{ matrix.goarch }}.tar.gz
   #       overwrite: true
   #       tag: ${{ github.ref }}
 
