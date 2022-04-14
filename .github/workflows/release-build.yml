@@ -10,13 +10,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.1.0
-      - run: echo "::set-output name=srcdir::$(pwd)"
+      - name: Set src directory
+        run: echo "::set-output name=srcdir::$(pwd)"
         id: pwd
       - uses: docker/setup-qemu-action@v1
-      - run: |
+      - name: Build in qemu
+        run: |
           echo ${{ steps.pwd.outputs.srcdir }}
-          docker run --rm -v /home/runner/work/test-test/test-test:/src -w /src --entrypoint /bin/sh --platform linux/arm64 golang:alpine -c "apk add --no-cache gcc g++ && \
+          docker run --rm -v ${{ steps.pwd.outputs.srcdir }}:/src -w /src --entrypoint /bin/sh --platform linux/arm64 golang:alpine -c "apk add --no-cache gcc g++ && \
           go build -buildvcs=false -ldflags '-s -w'"
+      - name: Test output (same container or ...)
+        run: |
+          pwd
+          ls -lh
 
   # armv7_job:
   #   # The host should always be Linux
