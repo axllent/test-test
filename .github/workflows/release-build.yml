@@ -24,7 +24,7 @@ jobs:
         run: |
           echo ${{ steps.pwd.outputs.srcdir }}
           docker run --rm -v ${{ steps.pwd.outputs.srcdir }}:/src -w /src --entrypoint /bin/sh --platform linux/${{ matrix.arch }} golang:alpine -c "apk add --no-cache gcc g++ && \
-          go build -buildvcs=false -ldflags '-s -w'"
+          go build -buildvcs=false -ldflags '-s -w -extldflags -static'"
       - name: Create archive
         run: |
           tar -zcvf golp_alpine_${{ matrix.arch }}.tar.gz golp README.md LICENSE
