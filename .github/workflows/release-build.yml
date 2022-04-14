@@ -5,16 +5,38 @@ name: Build & release
 
 jobs:
 
-  prebuild-arm64-alpine:
-    name: arm64 alpine
-    runs-on: ubuntu-latest
-    steps:
-      - uses: docker/setup-qemu-action@v1
-      - run: |
-          docker run --rm --entrypoint /bin/sh --platform linux/arm64 golang:alpine -c "apk add --no-cache git gcc g++ && \
-          go build go build -ldflags '-s -w'"
+  # prebuild-arm64-alpine:
+  #   name: arm64 alpine
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: docker/setup-qemu-action@v1
+  #     - run: |
+  #         docker run --rm --entrypoint /bin/sh --platform linux/arm64 golang:alpine -c "apk add --no-cache git gcc g++ && \
+  #         go build go build -ldflags '-s -w'"
 
-  # armh
+  armv7_job:
+    # The host should always be Linux
+    runs-on: ubuntu-18.04
+    name: Build on ubuntu-18.04 armv7
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - uses: uraimo/run-on-arch-action@v2
+        name: Run commands
+        id: runcmd
+        with:
+          arch: armv7
+          distro: alpine_latest
+
+          # Not required, but speeds up builds by storing container images in
+          # a GitHub package registry.
+          githubToken: ${{ github.token }}
+
+          # Set an output parameter `uname` for use in subsequent steps
+          run: |
+            apk addgo  git gcc g++
+            go build -ldflags "-s -w" .
+            tar -zcvf golp_alpine_armv7.tar.gz golp README.md LICENSE
+            ls -lh
 
       # - name: Get the output
       #   # Echo the `uname` output parameter from the `runcmd` step
