@@ -9,7 +9,6 @@ import (
 
 	"github.com/axllent/golp/utils"
 	"github.com/evanw/esbuild/pkg/api"
-	"github.com/wellington/go-libsass"
 )
 
 var processTypes = map[string]bool{"styles": true, "scripts": true, "copy": true}
@@ -35,10 +34,49 @@ func (p ProcessStruct) processStyles() error {
 
 	files := p.Files()
 
-	for f, subDir := range files {
-		filename := path.Base(f)
-		d := path.Join(p.Dist, subDir)
+	if p.DistFile != "" {
+		imports := []string{}
+		for _, f := range files {
+			extension := strings.ToLower(filepath.Ext(f.InFile))
+
+			if extension == ".css" {
+				c, err := utils.FileGetContents(f.InFile)
+				if err != nil {
+					return err
+				}
+
+				imports = append(imports, string(c))
+			} else {
+				imports = append(imports, fmt.Sprintf(`@import "%s";`, f.InFile))
+			}
+		}
+
+		if !utils.IsDir(p.Dist) {
+			/* #nosec G301 */
+			if err := os.MkdirAll(p.Dist, 0755); err != nil {
+				return err
+			}
+		}
+
+		sassImport := strings.Join(imports, "\n")
+
+		out := path.Join(p.Dist, p.DistFile)
+
+		if err := compileStyles(sassImport, out, ""); err != nil {
+			return err
+		}
+
+		Log().Debugf("processed %d SASS files to %s", len(files), out)
+		Log().Infof("'%s' compiled in %v", p.Name, sw.Elapsed())
+
+		return nil
+	}
+
+	for _, f := range files {
+		filename := filepath.Base(f.InFile)
+		d := path.Join(p.Dist, f.OutPath)
 		if !utils.IsDir(d) {
+			/* #nosec G301 */
 			if err := os.MkdirAll(d, 0755); err != nil {
 				return err
 			}
@@ -50,43 +88,27 @@ func (p ProcessStruct) processStyles() error {
 		if extension == ".scss" || extension == ".sass" || extension == ".css" {
 			out = out[0:len(out)-len(extension)] + ".css"
 
-			wi, err := os.Create(out)
-			if err != nil {
+			content := fmt.Sprintf(`@import "%s";`, f.InFile)
+
+			if extension == ".css" {
+				c, err := utils.FileGetContents(f.InFile)
+				if err != nil {
+					return err
+				}
+
+				content = c
+			}
+
+			if err := compileStyles(string(content), out, f.InFile); err != nil {
 				return err
 			}
-			defer wi.Close()
-
-			fi, err := os.Open(f)
-			if err != nil {
-				return err
-			}
-			defer fi.Close()
-
-			comp, err := libsass.New(wi, fi)
-			if err != nil {
-				return err
-			}
-
-			comp.Option(libsass.Path(f)) // path must be set for relative imports
-
-			if Minify {
-				comp.Option(libsass.OutputStyle(3)) // compress CSS
-			} else {
-				comp.Option(libsass.SourceMap(true, out+".map", "")) // add sourcemaps
-			}
-
-			if err := comp.Run(); err != nil {
-				return err
-			}
-
-			Log().Debugf("processed %s to %s", f, out)
 		} else {
-			Log().Warningf("unsupported extension: %s", f)
+			Log().Warningf("unsupported stylesheet file extension: %s", f)
 		}
-
 	}
 
-	Log().Infof("'styles' compiled in %v", sw.Elapsed())
+	Log().Infof("'%s' compiled in %v", p.Name, sw.Elapsed())
+
 	return nil
 }
 
@@ -95,27 +117,43 @@ func (p ProcessStruct) processScripts() error {
 
 	files := p.Files()
 
-	for f, subDir := range files {
-		filename := path.Base(f)
-		d := path.Join(p.Dist, subDir)
-		if !utils.IsDir(d) {
-			if err := os.MkdirAll(d, 0755); err != nil {
+	if p.DistFile != "" {
+		imports := []string{}
+		for _, f := range files {
+			imports = append(imports, f.InFile)
+		}
+
+		if !utils.IsDir(p.Dist) {
+			/* #nosec G301 */
+			if err := os.MkdirAll(p.Dist, 0755); err != nil {
 				return err
 			}
 		}
-		out := path.Join(d, filename)
+
+		out := path.Join(p.Dist, p.DistFile)
 
 		options := api.BuildOptions{
-			EntryPoints:    []string{f},
+			Stdin: &api.StdinOptions{
+				Contents: "",
+			},
+			Inject:         imports,
 			Outfile:        out,
 			Write:          true,
 			AllowOverwrite: true,
+			Format:         api.FormatCommonJS,
+			SourcesContent: api.SourcesContentExclude,
+		}
+
+		if p.JSBundle {
+			options.Bundle = true
 		}
 
 		if Minify {
 			options.MinifyWhitespace = true
 			options.MinifyIdentifiers = true
 			options.MinifySyntax = true
+		} else {
+			options.Sourcemap = api.SourceMapLinked
 		}
 
 		result := api.Build(options)
@@ -130,10 +168,58 @@ func (p ProcessStruct) processScripts() error {
 			return fmt.Errorf("%s", errorMsg)
 		}
 
-		Log().Debugf("processed %s to %s", f, out)
+		Log().Debugf("compiled %d JS files to %s", len(files), out)
+		Log().Infof("'%s' compiled in %v", p.Name, sw.Elapsed())
+		return nil
 	}
 
-	Log().Infof("'scripts' compiled in %v", sw.Elapsed())
+	for _, f := range files {
+		filename := filepath.Base(f.InFile)
+		d := path.Join(p.Dist, f.OutPath)
+		if !utils.IsDir(d) {
+			/* #nosec G301 */
+			if err := os.MkdirAll(d, 0755); err != nil {
+				return err
+			}
+		}
+		out := path.Join(d, filename)
+
+		options := api.BuildOptions{
+			EntryPoints:    []string{f.InFile},
+			Outfile:        out,
+			Write:          true,
+			AllowOverwrite: true,
+			SourcesContent: api.SourcesContentExclude,
+		}
+
+		if p.JSBundle {
+			options.Bundle = true
+		}
+
+		if Minify {
+			options.MinifyWhitespace = true
+			options.MinifyIdentifiers = true
+			options.MinifySyntax = true
+		} else {
+			options.Sourcemap = api.SourceMapLinked
+		}
+
+		result := api.Build(options)
+
+		if len(result.Errors) > 0 {
+			errorMsg := fmt.Sprintf("> Error %s:%d\n%s",
+				result.Errors[0].Location.File,
+				result.Errors[0].Location.Line,
+				result.Errors[0].Text,
+			)
+
+			return fmt.Errorf("%s", errorMsg)
+		}
+
+		Log().Debugf("compiled %s to %s", f.InFile, out)
+	}
+
+	Log().Infof("'%s' compiled in %v", p.Name, sw.Elapsed())
 
 	return nil
 }
@@ -143,24 +229,25 @@ func (p ProcessStruct) processCopy() error {
 
 	files := p.Files()
 
-	for f, subDir := range files {
-		filename := path.Base(f)
-		d := path.Join(p.Dist, subDir)
+	for _, f := range files {
+		filename := filepath.Base(f.InFile)
+		d := path.Join(p.Dist, f.OutPath)
 		if !utils.IsDir(d) {
+			/* #nosec G301 */
 			if err := os.MkdirAll(d, 0755); err != nil {
 				return err
 			}
 		}
 		out := path.Join(d, filename)
 
-		if err := utils.Copy(f, out); err != nil {
+		if err := utils.Copy(f.InFile, out); err != nil {
 			return err
 		}
 
-		Log().Debugf("copied %s to %s", f, out)
+		Log().Debugf("copied %s to %s", f.InFile, out)
 	}
 
-	Log().Infof("'copy' completed in %v", sw.Elapsed())
+	Log().Infof("'%s' copied in %v", p.Name, sw.Elapsed())
 
 	return nil
 }

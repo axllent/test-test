@@ -1,0 +1,9 @@
+*.bak
+*.old
+/*.yaml
+/*.yml
+*.json
+/dist
+/golp*
+/htdocs
+/node_modules

@@ -1,94 +1,109 @@
 on:
   push:
-    tags:
-      - '*'
+
 name: Build & release
+
 jobs:
-  linux:
-    strategy:
-      matrix:
-        go-version: [1.18.x]
-        os: [ubuntu-latest]
-        goarch: ["386", amd64, arm64]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/setup-go@v3
-      with:
-        go-version: ${{ matrix.go-version }}
-    - name: Get tag
-      id: tag
-      uses: dawidd6/action-get-tag@v1
-    - uses: actions/checkout@v3
-    - run: go build -ldflags '-s -w -extldflags -static -X "github.com/axllent/golp/cmd.Version=${{ steps.tag.outputs.tag }}"'
-      env:
-        CGO_ENABLED: 1
-    - run: tar -zcvf golp_linux_${{ matrix.goarch }}.tar.gz golp README.md LICENSE
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: golp_linux_${{ matrix.goarch }}.tar.gz
-        asset_name: golp_linux_${{ matrix.goarch }}.tar.gz
-        overwrite: true
-        tag: ${{ github.ref }}
 
-  darwin:
-    strategy:
-      matrix:
-        go-version: [1.18.x]
-        os: [macos-latest]
-        goarch: [amd64, arm64]
-    runs-on: ${{ matrix.os }}
+  prebuild-arm64-alpine:
+    name: arm64 alpine
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/setup-go@v3
-      with:
-        go-version: ${{ matrix.go-version }}
-    - name: Get tag
-      id: tag
-      uses: dawidd6/action-get-tag@v1
-    - uses: actions/checkout@v3
-    - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ steps.tag.outputs.tag }}"'
-      env:
-        CGO_ENABLED: 1
-    - run: tar -zcvf golp_darwin_${{ matrix.goarch }}.tar.gz golp README.md LICENSE
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: golp_darwin_${{ matrix.goarch }}.tar.gz
-        asset_name: golp_darwin_${{ matrix.goarch }}.tar.gz
-        overwrite: true
-        tag: ${{ github.ref }}
+      - uses: docker/setup-qemu-action@v1
+      - run: |
+          docker run --rm --entrypoint /bin/sh --platform linux/arm64 node:16-alpine -c "apk add --no-cache git gcc g++ && \
+          go build go build -ldflags '-s -w'"
 
-  windows:
-    strategy:
-      matrix:
-        go-version: [1.18.x]
-        os: [windows-latest]
-        goarch: ["386", amd64]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/setup-go@v3
-      with:
-        go-version: ${{ matrix.go-version }}
-    - uses: actions/checkout@v3
-    - name: Get tag
-      id: tag
-      uses: dawidd6/action-get-tag@v1
-    - run: go build -ldflags '-s -w -extldflags -static -X "github.com/axllent/golp/cmd.Version=${{ steps.tag.outputs.tag }}"'
-      env:
-        CGO_ENABLED: 1
-    - run: go build -ldflags "-s -w" .
-    - name: Compress zip files
-      uses: papeloto/action-zip@v1
-      with:
-        files: golp.exe README.md LICENSE
-        dest: golp_windows_${{ matrix.goarch }}.zip
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: golp_windows_${{ matrix.goarch }}.zip
-        asset_name: golp_windows_${{ matrix.goarch }}.zip
-        overwrite: true
-        tag: ${{ github.ref }}
+  # armh
+
+      # - name: Get the output
+      #   # Echo the `uname` output parameter from the `runcmd` step
+      #   run: |
+  # linux:
+  #   strategy:
+  #     matrix:
+  #       go-version: [1.18.x]
+  #       os: [ubuntu-latest]
+  #       goarch: ["386", amd64, arm64]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #   - uses: actions/setup-go@v3
+  #     with:
+  #       go-version: ${{ matrix.go-version }}
+  #   - name: Get tag
+  #     id: tag
+  #     uses: dawidd6/action-get-tag@v1
+  #   - uses: actions/checkout@v3
+  #   - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ steps.tag.outputs.tag }}"'
+  #     env:
+  #       CGO_ENABLED: 1
+  #   - run: tar -zcvf golp_linux_${{ matrix.goarch }}.tar.gz golp README.md LICENSE
+  #   - name: Upload binaries to release
+  #     uses: svenstaro/upload-release-action@v2
+  #     with:
+  #       repo_token: ${{ secrets.GITHUB_TOKEN }}
+  #       file: golp_linux_${{ matrix.goarch }}.tar.gz
+  #       asset_name: golp_linux_${{ matrix.goarch }}.tar.gz
+  #       overwrite: true
+  #       tag: ${{ github.ref }}
+
+  # darwin:
+  #   strategy:
+  #     matrix:
+  #       go-version: [1.18.x]
+  #       os: [macos-latest]
+  #       goarch: [amd64, arm64]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #   - uses: actions/setup-go@v3
+  #     with:
+  #       go-version: ${{ matrix.go-version }}
+  #   - name: Get tag
+  #     id: tag
+  #     uses: dawidd6/action-get-tag@v1
+  #   - uses: actions/checkout@v3
+  #   - run: go build -ldflags '-s -w -X "github.com/axllent/golp/cmd.Version=${{ steps.tag.outputs.tag }}"'
+  #     env:
+  #       CGO_ENABLED: 1
+  #   - run: tar -zcvf golp_darwin_${{ matrix.goarch }}.tar.gz golp README.md LICENSE
+  #   - name: Upload binaries to release
+  #     uses: svenstaro/upload-release-action@v2
+  #     with:
+  #       repo_token: ${{ secrets.GITHUB_TOKEN }}
+  #       file: golp_darwin_${{ matrix.goarch }}.tar.gz
+  #       asset_name: golp_darwin_${{ matrix.goarch }}.tar.gz
+  #       overwrite: true
+  #       tag: ${{ github.ref }}
+
+  # windows:
+  #   strategy:
+  #     matrix:
+  #       go-version: [1.18.x]
+  #       os: [windows-latest]
+  #       goarch: ["386", amd64]
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #   - uses: actions/setup-go@v3
+  #     with:
+  #       go-version: ${{ matrix.go-version }}
+  #   - uses: actions/checkout@v3
+  #   - name: Get tag
+  #     id: tag
+  #     uses: dawidd6/action-get-tag@v1
+  #   - run: go build -ldflags '-s -w -extldflags "-static" -X "github.com/axllent/golp/cmd.Version=${{ steps.tag.outputs.tag }}"'
+  #     env:
+  #       CGO_ENABLED: 1
+  #   - run: go build -ldflags "-s -w" .
+  #   - name: Compress zip files
+  #     uses: papeloto/action-zip@v1
+  #     with:
+  #       files: golp.exe README.md LICENSE
+  #       dest: golp_windows_${{ matrix.goarch }}.zip
+  #   - name: Upload binaries to release
+  #     uses: svenstaro/upload-release-action@v2
+  #     with:
+  #       repo_token: ${{ secrets.GITHUB_TOKEN }}
+  #       file: golp_windows_${{ matrix.goarch }}.zip
+  #       asset_name: golp_windows_${{ matrix.goarch }}.zip
+  #       overwrite: true
+  #       tag: ${{ github.ref }}

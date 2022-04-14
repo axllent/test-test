@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/axllent/golp/updater"
 	"github.com/spf13/cobra"
@@ -35,7 +36,9 @@ var versionCmd = &cobra.Command{
 			return updateApp()
 		}
 
-		fmt.Printf("Version: %s\n", Version)
+		fmt.Printf("Version %s compiled with %s on %s/%s\n",
+			Version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
+
 		latest, _, _, err := updater.GithubLatest(Repo, RepoBinaryName)
 		if err == nil && updater.GreaterThan(latest, Version) {
 			fmt.Printf(

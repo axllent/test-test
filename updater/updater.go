@@ -173,7 +173,7 @@ func GithubUpdate(repo, appName, currentVersion string) (string, error) {
 }
 
 // DownloadToFile downloads a URL to a file
-func downloadToFile(url, filepath string) error {
+func downloadToFile(url, fileName string) error {
 	// Get the data
 	resp, err := http.Get(url) // #nosec
 	if err != nil {
@@ -182,7 +182,7 @@ func downloadToFile(url, filepath string) error {
 	defer resp.Body.Close()
 
 	// Create the file
-	out, err := os.Create(filepath)
+	out, err := os.Create(filepath.Clean(fileName))
 	if err != nil {
 		return err
 	}

@@ -14,8 +14,8 @@ var buildCmd = &cobra.Command{
 	Short: "Compile & copy your assets (single)",
 	Long: `Compile & copy your assets in a single run.
 
-By default SASS files will include SourceMaps, which are used by browsers to
-debug your CSS. Run with '-m' to disable this and minify the output.`,
+By default SASS & JS files will include SourceMaps, which are used by browsers
+to debug your code. Run with '-m' to disable this and minify the output.`,
 	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 
@@ -38,7 +38,7 @@ debug your CSS. Run with '-m' to disable this and minify the output.`,
 			}
 		}
 
-		app.Log().Infof("build compiled in %v", sw.Elapsed())
+		app.Log().Infof("completed in %v", sw.Elapsed())
 	},
 }
 

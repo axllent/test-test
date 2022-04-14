@@ -1,41 +1,43 @@
 package app
 
-import (
-	"path"
-	"strings"
-
-	"github.com/axllent/golp/utils"
-	fg "github.com/goreleaser/fileglob"
-)
-
 // Conf struct
 var Conf struct {
-	ConfigFile          string   // build process is relative to this config
-	CleanDirs           []string // is set, this directory will be deleted with clean
-	AbortOnProcessError bool
-	// Watch               []string
-	Process []ProcessStruct
+	ConfigFile string   // build process is relative to this config
+	WorkingDir string   // working directory is the base directory of the config file
+	CleanDirs  []string // is set, this directory will be deleted with clean
+	Process    []ProcessStruct
 }
 
 // ProcessStruct for config
 type ProcessStruct struct {
 	Type string
-	Src  []string
+	Name string
+	// Src files
+	Src []string
+	// Dist directory
 	Dist string
+	// DistFile is the combined filename for all matching files if specified (JS/CSS only)
+	DistFile string
+	// JSBundle determines whether the dist JS should be bundled
+	JSBundle bool
 }
 
 // YamlConf is the yaml struct
 type yamlConf struct {
 	Clean  []string `yaml:"clean"`
 	Styles []struct {
+		Name string   `yaml:"name"`
 		Src  []string `yaml:"src"`
 		Dist string   `yaml:"dist"`
 	} `yaml:"styles"`
 	Scripts []struct {
-		Src  []string `yaml:"src"`
-		Dist string   `yaml:"dist"`
+		Name   string   `yaml:"name"`
+		Src    []string `yaml:"src"`
+		Dist   string   `yaml:"dist"`
+		Bundle bool     `yaml:"bundle"`
 	} `yaml:"scripts"`
 	Copy []struct {
+		Name string   `yaml:"name"`
 		Src  []string `yaml:"src"`
 		Dist string   `yaml:"dist"`
 	} `yaml:"copy"`
@@ -46,36 +48,8 @@ type watchMap struct {
 	ProcessStruct ProcessStruct
 }
 
-// Files returns all files matching the glob pattern
-// should maybe use https://github.com/goreleaser/fileglob
-func (p ProcessStruct) Files() map[string]string {
-	paths := map[string]string{}
-	for _, pth := range p.Src {
-		matches, err := fg.Glob(pth)
-		// matches, err := filepath.Glob(pth)
-		if err == nil {
-			subDir := ""
-			subDirFrom := ""
-
-			if strings.Contains(pth, "*") {
-				parts := strings.Split(pth, "*")
-				subDirFrom = parts[0]
-			}
-
-			for _, f := range matches {
-				if utils.IsFile(f) {
-					if subDirFrom != "" {
-						if strings.HasPrefix(f, subDirFrom) {
-							if len(path.Dir(f)) > len(subDirFrom) {
-								subDir = path.Dir(f)[len(subDirFrom):]
-							}
-						}
-					}
-					paths[f] = subDir
-				}
-			}
-		}
-	}
-
-	return paths
+// FileMap struct maps the file to the respective dist directory
+type FileMap struct {
+	InFile  string
+	OutPath string
 }

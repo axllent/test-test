@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 	"syscall"
 )
@@ -38,7 +37,7 @@ func TarGZExtract(inputFilePath, outputFilePath string) (err error) {
 func mkdirAll(dirPath string, perm os.FileMode) (func(), error) {
 	var undoDir string
 
-	for p := dirPath; ; p = path.Dir(p) {
+	for p := dirPath; ; p = filepath.Dir(p) {
 		finfo, err := os.Stat(p)
 		if err == nil {
 			if finfo.IsDir() {
@@ -211,7 +210,7 @@ func extract(filePath string, directory string) error {
 			}
 		}
 
-		file, err := os.Create(filename)
+		file, err := os.Create(filepath.Clean(filename))
 		if err != nil {
 			return err
 		}
