@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: docker/setup-qemu-action@v1
       - run: |
-          docker run --rm --entrypoint /bin/sh --platform linux/arm64 node:16-alpine -c "apk add --no-cache git gcc g++ && \
+          docker run --rm --entrypoint /bin/sh --platform linux/arm64 golang:alpine -c "apk add --no-cache git gcc g++ && \
           go build go build -ldflags '-s -w'"
 
   # armh
